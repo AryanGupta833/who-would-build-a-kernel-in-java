@@ -156,12 +156,12 @@ public final class SystemCalls {
             Magic.disableInterrupts();
             Magic.leaveUser(frame + FRAME_BYTES, (int) a0);
             return;
-        }
-     else if (number == CLOCK_GETTIME) {
-        result = clockGettime(a0, a1);
-    } else if (number == NANOSLEEP) {
-        result = nanosleep(a0, a1);}
-        else {
+
+        } else if (number == CLOCK_GETTIME) {
+            result = clockGettime(a0, a1);
+        } else if (number == NANOSLEEP) {
+            result = nanosleep(a0, a1);
+        } else {
             result = -ENOSYS;
         }
         Frame.setRegister(frame, Frame.RAX, result);
@@ -544,18 +544,12 @@ public final class SystemCalls {
         if (seconds > (Long.MAX_VALUE - nanos) / NANOS_PER_SECOND) {
             return -EINVAL;
         }
-
         long durationNanos = seconds * NANOS_PER_SECOND + nanos;
-        if (durationNanos > Long.MAX_VALUE - TIMER_RESOLUTION_NANOS) {
-            return -EINVAL;
-        }
         if (durationNanos == 0) {
             return 0;
         }
 
-        long roundedNanos = ((durationNanos - 1) / TIMER_RESOLUTION_NANOS + 1)
-            * TIMER_RESOLUTION_NANOS;
-        Timer.sleep(roundedNanos / NANOS_PER_MILLISECOND);
+        Scheduler.sleep(durationNanos / NANOS_PER_MILLISECOND + 1000 / Timer.HZ);
         return 0;
     }
 
